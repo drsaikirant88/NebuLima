@@ -1,0 +1,17 @@
+node_modules/
+dist/
+build/
+coverage/
+target/
+src-tauri/target/
+.git/
+.gitignore
+.dockerignore
+*.log*
+.env*
+!.env.example
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+

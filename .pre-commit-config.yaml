@@ -1,0 +1,76 @@
+repos:
+  # General file hygiene
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=1000"]
+      - id: detect-private-key
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+        exclude: ^tsconfig.*\.json$
+
+  # Shell scripts
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.10.0
+    hooks:
+      - id: shellcheck
+        files: ^scripts/.*\.sh$
+
+  # Secret scanning - official hook from the gitleaks org itself
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  # Dockerfile lint - official hook from the hadolint repo itself
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.15.1
+    hooks:
+      - id: hadolint-docker
+
+  # Frontend (TypeScript/React) - mirrors `npm run format` / `npm run lint`
+  - repo: local
+    hooks:
+      - id: biome-format
+        name: biome format (frontend)
+        entry: npx biome format --write
+        language: system
+        files: \.(ts|tsx|js|jsx|json|css)$
+        exclude: ^src-tauri/
+
+      - id: biome-lint
+        name: biome lint (frontend)
+        entry: npx biome lint
+        language: system
+        files: \.(ts|tsx|js|jsx)$
+        exclude: ^src-tauri/
+
+      - id: tsc
+        name: tsc --noEmit (frontend)
+        entry: npx tsc --noEmit -p tsconfig.json
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false
+
+      # Rust backend - mirrors `make lint` / `make format`
+      - id: cargo-fmt
+        name: cargo fmt (backend)
+        entry: bash -c 'cd src-tauri && cargo fmt'
+        language: system
+        files: ^src-tauri/.*\.rs$
+        pass_filenames: false
+
+      - id: cargo-clippy
+        name: cargo clippy (backend)
+        entry: bash -c 'cd src-tauri && cargo clippy --all-targets -- -D warnings'
+        language: system
+        files: ^src-tauri/.*\.rs$
+        pass_filenames: false
