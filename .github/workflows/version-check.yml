@@ -9,7 +9,7 @@ jobs:
     name: Version fields stay in sync
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Verify package.json, Cargo.toml, and tauri.conf.json agree
         run: |
           PACKAGE_VERSION=$(node -p "require('./package.json').version")

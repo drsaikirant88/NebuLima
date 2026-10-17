@@ -10,8 +10,8 @@ jobs:
     name: Frontend lint & format check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: "26"
       - run: npm ci
@@ -22,8 +22,8 @@ jobs:
     name: Test suite
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: "26"
       # ubuntu-latest already ships rustup; this installs (and caches) the exact toolchain
@@ -53,8 +53,8 @@ jobs:
             bundles: dmg,app
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: "26"
       - run: rustup show
@@ -68,7 +68,7 @@ jobs:
           workspaces: src-tauri
       - run: npm ci
       - name: Verify app builds
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
