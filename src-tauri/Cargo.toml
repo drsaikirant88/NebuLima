@@ -86,7 +86,7 @@ path = "../tests/backend/contract/containers_contract_test.rs"
 
 [[test]]
 name = "containers_test"
-path = "../tests/docker/containers_test.rs"
+path = "../tests/backend/containers_test.rs"
 
 [[test]]
 name = "images_contract_test"
@@ -94,7 +94,7 @@ path = "../tests/backend/contract/images_contract_test.rs"
 
 [[test]]
 name = "images_test"
-path = "../tests/docker/images_test.rs"
+path = "../tests/backend/images_test.rs"
 
 [[test]]
 name = "volumes_contract_test"
@@ -102,7 +102,7 @@ path = "../tests/backend/contract/volumes_contract_test.rs"
 
 [[test]]
 name = "volumes_test"
-path = "../tests/docker/volumes_test.rs"
+path = "../tests/backend/volumes_test.rs"
 
 [[test]]
 name = "kubernetes_cli_test"
