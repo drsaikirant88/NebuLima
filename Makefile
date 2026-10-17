@@ -1,4 +1,4 @@
-.PHONY: all help dev test test-frontend test-backend test-docker build-ubuntu build-macos docker-build docker-dev clean lint format
+.PHONY: all help setup dev test test-frontend test-backend build-ubuntu build-macos clean lint format
 
 SHELL := /bin/bash
 
@@ -8,6 +8,7 @@ help:
 	@echo "NebuLima Control Center - Build & Development Tasks"
 	@echo ""
 	@echo "Local Commands:"
+	@echo "  make setup           Install npm deps and the pinned Rust toolchain"
 	@echo "  make dev             Run app in development mode with hot-reload"
 	@echo "  make test            Run all local tests (cargo test + vitest)"
 	@echo "  make test-backend    Run Rust backend unit/contract tests"
@@ -19,11 +20,12 @@ help:
 	@echo "  make build-ubuntu    Build release artifacts for Ubuntu (.deb, .AppImage)"
 	@echo "  make build-macos     Build release artifacts for macOS (.dmg, .app)"
 	@echo ""
-	@echo "Docker-based Isolated Development & Testing:"
-	@echo "  make docker-build    Build Docker test and development image"
-	@echo "  make test-docker     Run complete backend test suite inside Docker container"
-	@echo "  make docker-dev      Run interactive development container shell"
-	@echo ""
+
+# Environment setup
+setup:
+	@command -v rustup >/dev/null 2>&1 || { echo "rustup not found - install it from https://rustup.rs, then re-run make setup"; exit 1; }
+	rustup show
+	npm install
 
 # Development mode
 dev:
@@ -38,32 +40,18 @@ test-backend:
 test-frontend:
 	npm test
 
-# Docker-isolated testing
-test-docker:
-	@echo "Running full backend test suite in Docker container..."
-	docker compose -f tests/docker/docker-compose.yml up --build --abort-on-container-exit --exit-code-from test-runner
-	@docker compose -f tests/docker/docker-compose.yml down -v
-
-# Interactive Docker dev environment
-docker-build:
-	docker build -t nebulima-dev -f tests/docker/Dockerfile .
-
-docker-dev: docker-build
-	docker run -it --rm \
-		-v "$(PWD):/workspace" \
-		-w /workspace \
-		nebulima-dev /bin/bash
-
 # Platform release packaging targets. The colima/docker dependency check runs inside the
 # app itself at first launch (src-tauri/src/preflight.rs), not here - these targets only
 # build and bundle NebuLima, so build/CI machines never need colima or docker installed.
 build-ubuntu:
+	scripts/check-platform.sh linux
 	npm run build
-	cd src-tauri && cargo tauri build --bundles deb,appimage
+	cd src-tauri && npx tauri build --bundles deb,appimage
 
 build-macos:
+	scripts/check-platform.sh macos
 	npm run build
-	cd src-tauri && cargo tauri build --bundles dmg,app
+	cd src-tauri && npx tauri build --bundles dmg,app
 
 # Code hygiene
 lint:
@@ -78,4 +66,3 @@ clean:
 	rm -rf dist
 	rm -rf src-tauri/target
 	rm -rf node_modules
-
