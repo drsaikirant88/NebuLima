@@ -44,7 +44,8 @@ refuses to open if either tool is absent from `PATH`.
    chmod +x NebuLima_<version>_<arch>.AppImage
    ./NebuLima_<version>_<arch>.AppImage
    ```
-   (`<arch>` is `amd64`/`arm64` for the `.deb`, `x86_64`/`aarch64` for the `.AppImage`.)
+   (`<arch>` is `amd64` for the `.deb`, `x86_64` for the `.AppImage` — the release
+   pipeline currently only builds for x86_64 Linux.)
 
 If `colima` or `docker` is missing from `PATH`, NebuLima's main window will refuse to
 appear the first time you launch it after installing, and an error dialog will name

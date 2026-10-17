@@ -31,6 +31,17 @@ inside them. It is intentionally locked down:
   this exception does not widen subprocess sandboxing. Like every other privileged
   capability, this client is reachable from the frontend only through its own
   `#[tauri::command]` wrappers via `src/services/ipc.ts`, never directly.
+- **Login-shell `PATH` resolution is a narrow, startup-only exception.** GUI-launched
+  apps (Finder/Dock/Spotlight) are spawned by `launchd`, the session manager with a
+  bare-minimum `PATH` that never sources `.zprofile`/`.bash_profile`/etc., making
+  Homebrew or standalone `colima`/`docker` invisible even when correctly installed.
+  `preflight::fix_path_env` (`src-tauri/src/preflight.rs`) works around this by running
+  a fixed, argument-free command — `$SHELL -lc 'printf %s "$PATH"'` — once during
+  startup, before the main window is created. This is a native `std::process::Command`
+  call, entirely separate from the `shell:allow-execute` Tauri capability below: it is
+  never reachable from the webview/frontend, takes no user or IPC-supplied input
+  (only the user's own `$SHELL` env var selects which binary runs), and the command
+  string itself never changes. It does not widen what the webview can execute.
 
 ## Tauri capability allowlist
 

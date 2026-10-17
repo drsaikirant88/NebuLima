@@ -15,8 +15,8 @@ command/event system. There is no web server mode and no browser build target.
 3. **Modular architecture & safe command abstraction** — UI components contain no
    business logic or CLI invocation; all shell/CLI execution goes through a dedicated,
    input-validating Rust abstraction.
-4. **Test-first development with Docker-isolated testing** — tests accompany every
-   change; `make test-docker` is the reproducible, host-independent gate.
+4. **Test-first development** — tests accompany every change; `make test` is the
+   gate that must be green before any change is considered done.
 5. **Strict design system** - Material + glassmorphism, locked six-color palette, both
    Dark and Light modes required.
 
@@ -38,14 +38,13 @@ src-tauri/src/          Rust backend
 ├── colima/             colima CLI wrapper (cli.rs) and profile discovery/reconciliation (discovery.rs)
 ├── docker/             bollard-based Docker Engine client (containers, images, volumes)
 ├── diagnostics/        rotating log file setup (tracing-appender)
-├── preflight.rs        colima/docker/kubectl availability checks
+├── preflight.rs        colima/docker/kubectl availability checks + login-shell PATH fix
 ├── state.rs            shared app state + persisted settings
 └── lib.rs              Tauri app bootstrap: plugin registration, command handler list, setup() hook
 
 docs/                   This directory
 tests/
-├── backend/            Rust contract/unit tests (run by `cargo test`)
-├── docker/             Docker Compose stack + Dockerfile for the authoritative test gate
+├── backend/            Rust contract/unit tests
 └── frontend/           Vitest + React Testing Library specs
 ```
 
@@ -65,11 +64,25 @@ adding a new command:
 
 ## Testing
 
-- `make test` — fast local loop: `cargo test` + `vitest run`.
-- `make test-docker` — Runs the complete backend suite plus the frontend suite,
-   fully isolated in a disposable Docker Compose stack (`tests/docker/docker-compose.yml`). 
-   This is the one gate that must be green before any change is considered done — host-machine
-   `cargo test`/`vitest` runs are a convenience, not a substitute.
+`make test` - `cargo test` + `vitest run`, directly on the host. This is what CI runs
+(`.github/workflows/ci.yml`'s `test` job) and is the gate that must be green before any
+change is considered done.
+
+`tests/backend/containers_test.rs`, `images_test.rs`, and `volumes_test.rs` connect directly
+to whatever Docker socket is reachable at `$DOCKER_HOST`, falling back to Colima's default
+profile socket (`~/.colima/default/docker.sock`) if present, then `/var/run/docker.sock` —
+your real local daemon, or CI's runner-provided one. The Colima fallback is checked before
+the generic socket because `docker context`'s notion of "current" is unreliable when both
+Docker Desktop and Colima are installed (whichever started most recently wins); if you have
+both installed and don't use the `default` Colima profile, set `DOCKER_HOST` explicitly
+before running `make test`. They build small fixture images/containers and clean them up, 
+but the one operation with a wider blast radius is `volumes_test.rs`'s call to 
+`volumes::prune`: production (`commands/volumes.rs`) always calls it with `label: None`, 
+pruning every unattached volume on the daemon - the real feature. The test instead
+passes a label unique to its own fixtures, so the daemon only ever considers those as prune
+candidates, regardless of whatever else is sitting in your Docker Desktop/Colima state. If
+you add a new test that touches a daemon-wide/destructive operation like this, give it the
+same kind of scoping rather than relying on an isolated sandbox.
 
 See [build docs](BUILD.md) for the full command reference.
 
