@@ -50,6 +50,46 @@ pub fn is_kubectl_available() -> bool {
     is_on_path("kubectl")
 }
 
+/// Runs `shell -lc 'printf %s "$PATH"'` and returns its trimmed stdout, or `None` if the
+/// shell couldn't be spawned, exited non-zero, or printed nothing. Split out from
+/// `fix_path_env` so tests can point it at a fixture script instead of the real login shell.
+fn resolve_shell_path(shell: &str) -> Option<String> {
+    let output = std::process::Command::new(shell)
+        .arg("-lc")
+        .arg("printf %s \"$PATH\"")
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let resolved = String::from_utf8(output.stdout).ok()?;
+    let trimmed = resolved.trim();
+    (!trimmed.is_empty()).then(|| trimmed.to_string())
+}
+
+/// Replaces the process's inherited `PATH` with the one reported by the user's login
+/// shell. GUI-launched apps (Finder/Dock/Spotlight) are spawned by `launchd` with a
+/// bare-minimum `PATH` that never sources `.zprofile`/`.bash_profile`/etc., so
+/// Homebrew-installed tools like `colima`/`docker` are invisible to this process even
+/// though every terminal on the same machine finds them fine. Terminal-launched runs
+/// (`npm run tauri dev`) already inherit a full shell `PATH` and are unaffected either
+/// way. Call this before `missing_dependencies` and before any `colima`/`docker` CLI
+/// invocation; `tauri-plugin-shell` resolves bare command names against this same
+/// process-wide `PATH`, so this one fix covers both.
+#[cfg(not(windows))]
+pub fn fix_path_env() {
+    let shell = env::var("SHELL").unwrap_or_else(|_| "/bin/sh".to_string());
+    match resolve_shell_path(&shell) {
+        Some(resolved) => env::set_var("PATH", resolved),
+        None => tracing::warn!(
+            "Could not resolve login shell PATH via {shell}; keeping inherited PATH"
+        ),
+    }
+}
+
+#[cfg(windows)]
+pub fn fix_path_env() {}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -72,7 +112,7 @@ mod tests {
 
     // `missing_dependencies` reads the process-wide `PATH` env var, which `cargo test` would
     // otherwise let multiple concurrently-running tests mutate at once. A single test covering
-    // every scenario sequentially (same convention `tests/docker/volumes_test.rs` uses for its
+    // every scenario sequentially (same convention `tests/backend/volumes_test.rs` uses for its
     // own global side effect) avoids that race without pulling in a serial-test crate.
     #[test]
     fn missing_dependencies_reflects_path_contents() {
@@ -99,5 +139,44 @@ mod tests {
         } else {
             env::remove_var("PATH");
         }
+    }
+
+    // `resolve_shell_path` never touches the process-wide `PATH` env var itself (unlike
+    // `fix_path_env`, which isn't unit tested here), so these can run concurrently with
+    // every other test in this file.
+    fn make_fake_shell(dir: &Path, body: &str) -> std::path::PathBuf {
+        let path = dir.join("fake_shell");
+        fs::write(&path, format!("#!/bin/sh\n{body}")).expect("write fixture shell");
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o755)).expect("set executable bit");
+        path
+    }
+
+    #[test]
+    fn resolve_shell_path_returns_trimmed_stdout_on_success() {
+        let dir = tempdir().expect("tempdir");
+        let shell = make_fake_shell(dir.path(), "printf '%s' '/fake/bin:/fake/sbin'\n");
+        assert_eq!(
+            resolve_shell_path(shell.to_str().expect("utf8 path")),
+            Some("/fake/bin:/fake/sbin".to_string())
+        );
+    }
+
+    #[test]
+    fn resolve_shell_path_returns_none_on_nonzero_exit() {
+        let dir = tempdir().expect("tempdir");
+        let shell = make_fake_shell(dir.path(), "exit 1\n");
+        assert_eq!(resolve_shell_path(shell.to_str().expect("utf8 path")), None);
+    }
+
+    #[test]
+    fn resolve_shell_path_returns_none_on_empty_output() {
+        let dir = tempdir().expect("tempdir");
+        let shell = make_fake_shell(dir.path(), "");
+        assert_eq!(resolve_shell_path(shell.to_str().expect("utf8 path")), None);
+    }
+
+    #[test]
+    fn resolve_shell_path_returns_none_when_shell_missing() {
+        assert_eq!(resolve_shell_path("/nonexistent/shell/binary"), None);
     }
 }

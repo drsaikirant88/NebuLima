@@ -89,6 +89,13 @@ pub fn run() {
         .setup(|app| {
             let handle = app.handle().clone();
 
+            // GUI-launched apps (Finder/Dock/Spotlight) get launchd's bare-minimum PATH,
+            // not the shell-rc-sourced one a terminal would provide, so Homebrew-installed
+            // CLIs like colima/docker are invisible to this process until re-resolved. Must
+            // run before both the check below and any colima/docker invocation elsewhere in
+            // the app (see preflight::fix_path_env's doc comment).
+            preflight::fix_path_env();
+
             // Checked at first launch on the end user's machine, not at build or
             // package-install time (see preflight.rs's doc comment for why). The main window
             // stays hidden (tauri.conf.json's `visible: false`) until this passes.

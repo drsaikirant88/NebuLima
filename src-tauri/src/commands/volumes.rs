@@ -83,7 +83,7 @@ pub async fn prune_volumes(
     let mut removed_names = Vec::new();
     for (name, socket_path) in targets_info {
         let docker = ensure_docker_client_for(&app, &state, &name, &socket_path).await?;
-        removed_names.extend(volumes::prune(&docker).await?);
+        removed_names.extend(volumes::prune(&docker, None).await?);
         emit_volumes_changed(&app, &docker, &name).await;
     }
     Ok(PruneVolumesResult { removed_names })

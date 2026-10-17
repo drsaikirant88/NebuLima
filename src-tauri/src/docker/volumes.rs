@@ -123,12 +123,19 @@ pub async fn is_in_use(docker: &Docker, name: &str) -> bool {
 /// `all=true` filter is required here — without it, the Docker API (same as the `docker
 /// volume prune` CLI without `--all`) only removes *anonymous* volumes, leaving every
 /// user-named volume (the only kind this app's UI ever shows) untouched.
-pub async fn prune(docker: &Docker) -> Result<Vec<String>, IpcError> {
+///
+/// `label` further restricts which unattached volumes are even candidates: production call
+/// sites always pass `None` (prune every unattached volume — the real feature). Integration
+/// tests pass a label unique to their own fixtures, so `prune` only ever considers volumes
+/// they created themselves as candidates — letting the test run safely against a real,
+/// shared Docker daemon instead of requiring an isolated sandbox.
+pub async fn prune(docker: &Docker, label: Option<&str>) -> Result<Vec<String>, IpcError> {
+    let mut filters = HashMap::from([("all".to_string(), vec!["true".to_string()])]);
+    if let Some(label) = label {
+        filters.insert("label".to_string(), vec![label.to_string()]);
+    }
     let options = PruneVolumesOptions {
-        filters: Some(HashMap::from([(
-            "all".to_string(),
-            vec!["true".to_string()],
-        )])),
+        filters: Some(filters),
     };
     let response = docker.prune_volumes(Some(options)).await.map_err(|err| {
         IpcError::with_detail(
