@@ -11,7 +11,7 @@
 **Still stuck?**
 NebuLima writes a rotating diagnostic log via `tracing`, available through the app's `get_diagnostic_log_path` command, or directly on disk at:
 
-- **macOS**: `~/Library/Logs/com.nebulima.app/`
-- **Ubuntu**: `~/.local/share/com.nebulima.app/logs/` (or `$XDG_DATA_HOME/com.nebulima.app/logs/` if set)
+- **macOS**: `~/Library/Logs/com.nebulima.controlcenter/`
+- **Ubuntu**: `~/.local/share/com.nebulima.controlcenter/logs/` (or `$XDG_DATA_HOME/com.nebulima.controlcenter/logs/` if set)
 
 Attach the relevant log file when [reporting an issue](https://github.com/drsaikirant88/NebuLima/issues).
