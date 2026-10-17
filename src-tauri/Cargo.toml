@@ -1,0 +1,125 @@
+[package]
+name = "nebulima"
+version = "0.1.0"
+description = "Native desktop control center for Colima and Docker environments"
+edition = "2021"
+rust-version = "1.99.0"
+
+[lib]
+name = "nebulima_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "=2.7.2", default-features = false , features = [] }
+
+[dependencies]
+# Tauri Core (latest 2.12.3 release, pinned)
+tauri = { version = "=2.12.3", features = ["tray-icon", "macos-private-api"] }
+
+# Tauri Plugins (latest releases)
+tauri-plugin-shell = "2.0.0"
+tauri-plugin-single-instance = "2.5.3"
+tauri-plugin-dialog = "2.8.2"
+
+# Docker Engine API client over Unix socket (latest)
+bollard = "0.21.1"
+
+# Diagnostics and logging (latest)
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+tracing-appender = "0.2.3"
+
+# Filesystem watcher for ~/.colima discovery (latest)
+notify = "8.2.0"
+
+# Async runtime and streams (latest)
+tokio = { version = "1.53.2", features = ["full"] }
+futures-util = "0.3.31"
+
+# Serialization / Configuration (latest)
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.152"
+serde_yaml = "0.9.34"
+
+# Error handling (latest)
+thiserror = "2.0.21"
+
+# Kubernetes read-only client (node/pod status) for the embedded k3s cluster
+# (latest; rustls-tls avoids an OpenSSL system dependency; v1_35 matches Colima's
+# bundled k3s v1.35.0+k3s1)
+kube = { version = "4.2.0", default-features = false, features = ["client", "rustls-tls", "ring"] }
+k8s-openapi = { version = "0.28.0", features = ["v1_35"] }
+
+[dev-dependencies]
+tempfile = "3.27.0"
+tokio-test = "0.4.4"
+
+# Repo-root integration tests (tests/backend/) instead of the Cargo-default
+# src-tauri/tests/ layout, so each one needs an explicit [[test]] path override.
+[[test]]
+name = "socket_validation_test"
+path = "../tests/backend/socket_validation_test.rs"
+
+[[test]]
+name = "colima_cli_test"
+path = "../tests/backend/colima_cli_test.rs"
+
+[[test]]
+name = "discovery_test"
+path = "../tests/backend/discovery_test.rs"
+
+[[test]]
+name = "settings_contract_test"
+path = "../tests/backend/contract/settings_contract_test.rs"
+
+[[test]]
+name = "profiles_contract_test"
+path = "../tests/backend/contract/profiles_contract_test.rs"
+
+[[test]]
+name = "profile_state_test"
+path = "../tests/backend/profile_state_test.rs"
+
+[[test]]
+name = "containers_contract_test"
+path = "../tests/backend/contract/containers_contract_test.rs"
+
+[[test]]
+name = "containers_test"
+path = "../tests/backend/containers_test.rs"
+
+[[test]]
+name = "images_contract_test"
+path = "../tests/backend/contract/images_contract_test.rs"
+
+[[test]]
+name = "images_test"
+path = "../tests/backend/images_test.rs"
+
+[[test]]
+name = "volumes_contract_test"
+path = "../tests/backend/contract/volumes_contract_test.rs"
+
+[[test]]
+name = "volumes_test"
+path = "../tests/backend/volumes_test.rs"
+
+[[test]]
+name = "kubernetes_cli_test"
+path = "../tests/backend/kubernetes_cli_test.rs"
+
+[[test]]
+name = "kubernetes_client_test"
+path = "../tests/backend/kubernetes_client_test.rs"
+
+[[test]]
+name = "kubernetes_contract_test"
+path = "../tests/backend/contract/kubernetes_contract_test.rs"
+
+[[test]]
+name = "kubernetes_poll_test"
+path = "../tests/backend/kubernetes_poll_test.rs"
+
+[[test]]
+name = "no_kubectl_test"
+path = "../tests/backend/no_kubectl_test.rs"

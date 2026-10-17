@@ -1,0 +1,31 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default capabilities for NebuLima Control Center",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-close",
+    "core:window:allow-minimize",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-start-dragging",
+    "shell:default",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "colima",
+          "cmd": "colima",
+          "args": true
+        },
+        {
+          "name": "security",
+          "cmd": "security",
+          "args": true
+        }
+      ]
+    },
+    "dialog:allow-open"
+  ]
+}
+

@@ -1,0 +1,26 @@
+name: Version check
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  version-check:
+    name: Version fields stay in sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verify package.json, Cargo.toml, and tauri.conf.json agree
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          TAURI_VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          CARGO_VERSION=$(grep -m1 '^version' src-tauri/Cargo.toml | sed -E 's/version = "(.*)"/\1/')
+
+          echo "package.json:       $PACKAGE_VERSION"
+          echo "tauri.conf.json:    $TAURI_VERSION"
+          echo "src-tauri/Cargo.toml: $CARGO_VERSION"
+
+          if [ "$PACKAGE_VERSION" != "$TAURI_VERSION" ] || [ "$PACKAGE_VERSION" != "$CARGO_VERSION" ]; then
+            echo "::error::Version mismatch across files: package.json=$PACKAGE_VERSION, tauri.conf.json=$TAURI_VERSION, Cargo.toml=$CARGO_VERSION. All three must match before a release tag is pushed, since bundle filenames are derived from them."
+            exit 1
+          fi
