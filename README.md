@@ -1,5 +1,7 @@
 # NebuLima
 
+[![CI](https://github.com/drsaikirant88/NebuLima/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/drsaikirant88/NebuLima/actions/workflows/ci.yml)
+[![Release](https://github.com/drsaikirant88/NebuLima/actions/workflows/release.yml/badge.svg)](https://github.com/drsaikirant88/NebuLima/actions/workflows/release.yml)
 ![Rust](https://img.shields.io/badge/rust-1.99-orange)
 ![Node](https://img.shields.io/badge/node-%3E%3D26-brightgreen)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
