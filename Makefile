@@ -1,4 +1,4 @@
-.PHONY: all help setup dev test test-frontend test-backend build-ubuntu build-macos release clean lint format
+.PHONY: all help setup dev test test-frontend test-backend test-scripts build-ubuntu build-macos release clean lint format
 
 SHELL := /bin/bash
 
@@ -10,9 +10,10 @@ help:
 	@echo "Local Commands:"
 	@echo "  make setup           Install npm deps and the pinned Rust toolchain"
 	@echo "  make dev             Run app in development mode with hot-reload"
-	@echo "  make test            Run all local tests (cargo test + vitest)"
+	@echo "  make test            Run all local tests (cargo test + vitest + shell scripts)"
 	@echo "  make test-backend    Run Rust backend unit/contract tests"
 	@echo "  make test-frontend   Run frontend tests (vitest)"
+	@echo "  make test-scripts    Run scripts/check-platform.test.sh"
 	@echo "  make lint            Run linter checks for Rust and frontend"
 	@echo "  make format          Format frontend and backend code"
 	@echo ""
@@ -34,13 +35,16 @@ dev:
 	npm run dev
 
 # Testing targets
-test: test-backend test-frontend
+test: test-backend test-frontend test-scripts
 
 test-backend:
 	cd src-tauri && cargo test
 
 test-frontend:
 	npm test
+
+test-scripts:
+	scripts/check-platform.test.sh
 
 # Platform release packaging targets. The colima/docker dependency check runs inside the
 # app itself at first launch (src-tauri/src/preflight.rs), not here - these targets only
