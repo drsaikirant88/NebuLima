@@ -22,7 +22,13 @@ architecture, and the core principles this project follows, in particular:
 
 ## Setup
 
+NebuLima requires Node `>=26.13.0` (`.nvmrc` pins the floating major `26`). With
+[nvm](https://github.com/nvm-sh/nvm) installed, run `nvm use` from the repo root before
+`make setup` - `.npmrc`'s `engine-strict=true` makes `npm ci`/`npm install` refuse to
+run on an older Node.
+
 ```sh
+nvm use
 make setup
 make dev          # run the app with hot-reload
 ```
@@ -33,8 +39,12 @@ See [build docs](docs/BUILD.md) for the full `make` target reference.
 
 1. Create a branch off `main`.
 2. Write tests alongside your change (TDD is expected, not optional).
-3. Run `make lint` and `make test` locally - that's what CI runs.
-4. Open a pull request describing *why* the change is needed, not just what changed.
+3. Run `make lint` and `make test` locally - CI runs the same checks, split across the
+   `Frontend` and `Backend` jobs in `.github/workflows/ci.yml`.
+4. Open a pull request titled as a [Conventional Commit](https://www.conventionalcommits.org/)
+   (`type(scope): subject`, one of `feat|fix|perf|refactor|docs|test|build|ci|chore|revert`)
+   describing _why_ the change is needed, not just what changed. PRs are squash-merged
+   using the PR title as the commit message, so the title is what ends up in history.
    If it touches Tauri capabilities, shell-plugin scope, or Docker socket handling,
    say so explicitly and explain the security impact.
 
@@ -59,4 +69,5 @@ automatic on merge. To cut one:
 ## Reporting bugs
 
 - **Bugs/feature requests**: open a GitHub issue.
-- **Security vulnerabilities**: open a Github issue and flag it.
+- **Security vulnerabilities**: see [reporting a vulnerability](SECURITY.md#reporting-a-vulnerability) - use
+  GitHub's private vulnerability reporting instead of a public issue.
