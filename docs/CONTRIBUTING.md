@@ -73,8 +73,10 @@ nobody bumps a version field or pushes a `v*` tag by hand.
 3. To force a specific version instead of letting commit types decide it, add a
    `Release-As: X.Y.Z` footer to a commit on `main` (most often the PR's squash commit
    message) - release-please picks this up on its next run.
-4. macOS and Linux builds are unsigned - right-click the app and choose "Open" the first
-   time to bypass the Gatekeeper warning on macOS.
+4. macOS and Linux builds are unsigned. On recent macOS, this means Gatekeeper reports
+   "NebuLima is damaged and can't be opened" rather than the older "unidentified
+   developer" prompt, and right-click → Open no longer bypasses it. Clear the quarantine
+   attribute instead: `xattr -cr /path/to/NebuLima.app`.
 
 ## Reporting bugs
 
