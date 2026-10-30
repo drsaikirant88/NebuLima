@@ -1,0 +1,24 @@
+name: PR title
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  lint-pr-title:
+    name: Title follows Conventional Commits
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          PATTERN='^(feat|fix|perf|refactor|docs|test|build|ci|chore|revert)(\([a-z0-9_-]+\))?!?: .+'
+          if ! [[ "$PR_TITLE" =~ $PATTERN ]]; then
+            echo "::error::PR title \"$PR_TITLE\" is not a Conventional Commit. Expected 'type(scope): subject' where type is one of feat|fix|perf|refactor|docs|test|build|ci|chore|revert, optionally followed by '!' for a breaking change. PRs are squash-merged using this title as the commit message, and release-please reads it to decide the next version."
+            exit 1
+          fi
