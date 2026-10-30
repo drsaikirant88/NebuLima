@@ -64,9 +64,10 @@ adding a new command:
 
 ## Testing
 
-`make test` - `cargo test` + `vitest run`, directly on the host. This is what CI runs
-(`.github/workflows/ci.yml`'s `test` job) and is the gate that must be green before any
-change is considered done.
+`make test` - `cargo test` + `vitest run` + `scripts/check-platform.test.sh`, directly on
+the host. CI runs the same checks, split across `.github/workflows/ci.yml`'s `Frontend`
+and `Backend` jobs rather than `make test` itself (so `vitest` isn't run twice), and both
+must be green before any change is considered done.
 
 `tests/backend/containers_test.rs`, `images_test.rs`, and `volumes_test.rs` connect directly
 to whatever Docker socket is reachable at `$DOCKER_HOST`, falling back to Colima's default
@@ -75,9 +76,9 @@ your real local daemon, or CI's runner-provided one. The Colima fallback is chec
 the generic socket because `docker context`'s notion of "current" is unreliable when both
 Docker Desktop and Colima are installed (whichever started most recently wins); if you have
 both installed and don't use the `default` Colima profile, set `DOCKER_HOST` explicitly
-before running `make test`. They build small fixture images/containers and clean them up, 
-but the one operation with a wider blast radius is `volumes_test.rs`'s call to 
-`volumes::prune`: production (`commands/volumes.rs`) always calls it with `label: None`, 
+before running `make test`. They build small fixture images/containers and clean them up,
+but the one operation with a wider blast radius is `volumes_test.rs`'s call to
+`volumes::prune`: production (`commands/volumes.rs`) always calls it with `label: None`,
 pruning every unattached volume on the daemon - the real feature. The test instead
 passes a label unique to its own fixtures, so the daemon only ever considers those as prune
 candidates, regardless of whatever else is sitting in your Docker Desktop/Colima state. If
@@ -93,11 +94,11 @@ All UI is Material UI, customized with a frosted-glass look
 app — dark or light mode — must come from the six-color palette defined in
 `src/theme/palette.ts`. No other hex values are permitted.
 
-| Color       | Hex       | Preview |
-|-------------|-----------|---------|
-| white       | #FFFFFF   | <div style="width:24px;height:24px;background:#FFFFFF;border:1px solid #ccc;"></div> |
-| lightGrey   | #EBEBEB   | <div style="width:24px;height:24px;background:#EBEBEB;border:1px solid #ccc;"></div> |
-| deepInk     | #181722   | <div style="width:24px;height:24px;background:#181722;border:1px solid #ccc;"></div> |
-| slate       | #393F4A   | <div style="width:24px;height:24px;background:#393F4A;border:1px solid #ccc;"></div> |
-| warmSand    | #DCD2CC   | <div style="width:24px;height:24px;background:#DCD2CC;border:1px solid #ccc;"></div> |
-| mutedMauve  | #8A7875   | <div style="width:24px;height:24px;background:#8A7875;border:1px solid #ccc;"></div> |
+| Color      | Hex     | Preview                                                                              |
+| ---------- | ------- | ------------------------------------------------------------------------------------ |
+| white      | #FFFFFF | <div style="width:24px;height:24px;background:#FFFFFF;border:1px solid #ccc;"></div> |
+| lightGrey  | #EBEBEB | <div style="width:24px;height:24px;background:#EBEBEB;border:1px solid #ccc;"></div> |
+| deepInk    | #181722 | <div style="width:24px;height:24px;background:#181722;border:1px solid #ccc;"></div> |
+| slate      | #393F4A | <div style="width:24px;height:24px;background:#393F4A;border:1px solid #ccc;"></div> |
+| warmSand   | #DCD2CC | <div style="width:24px;height:24px;background:#DCD2CC;border:1px solid #ccc;"></div> |
+| mutedMauve | #8A7875 | <div style="width:24px;height:24px;background:#8A7875;border:1px solid #ccc;"></div> |

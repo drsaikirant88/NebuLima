@@ -3,8 +3,14 @@
 [![CI](https://github.com/drsaikirant88/NebuLima/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/drsaikirant88/NebuLima/actions/workflows/ci.yml)
 [![Release](https://github.com/drsaikirant88/NebuLima/actions/workflows/release.yml/badge.svg)](https://github.com/drsaikirant88/NebuLima/actions/workflows/release.yml)
 ![Rust](https://img.shields.io/badge/rust-1.99-orange)
-![Node](https://img.shields.io/badge/node-%3E%3D26-brightgreen)
+![Node](https://img.shields.io/badge/node-%3E%3D26.13.0-brightgreen)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+<p align="center">
+  <picture>
+    <img src="src-tauri/icons/512x512@2x.png" alt="NebuLima Logo" width="340">
+  </picture>
+</p>
 
 Native desktop application for Colima — manage Colima VM profiles, and the containers,
 images, and volumes running inside them, from a single control center.
@@ -23,6 +29,7 @@ refuses to open if either tool is absent from `PATH`.
 ### macOS
 
 1. Install the prerequisites (via [Homebrew](https://brew.sh)):
+
    ```sh
    brew install colima docker
    ```
@@ -36,16 +43,19 @@ refuses to open if either tool is absent from `PATH`.
 1. Install Docker's CLI following
    [Docker's official Ubuntu install guide](https://docs.docker.com/engine/install/ubuntu/).
 2. Install Colima — the simplest path is via [Homebrew on Linux](https://docs.brew.sh/Homebrew-on-Linux):
+
    ```sh
    brew install colima
    ```
 3. Download the latest `.deb` or `.AppImage` (or build it yourself) and install it:
+
    ```sh
    sudo apt install ./NebuLima_<version>_<arch>.deb
    # or, for the AppImage:
    chmod +x NebuLima_<version>_<arch>.AppImage
    ./NebuLima_<version>_<arch>.AppImage
    ```
+
    (`<arch>` is `amd64` for the `.deb`, `x86_64` for the `.AppImage` — the release
    pipeline currently only builds for x86_64 Linux.)
 
@@ -57,13 +67,13 @@ Having trouble? See [troubleshooting](docs/TROUBLESHOOTING.md).
 
 ## Documentation
 
-| Doc | What's in it |
-| --- | --- |
-| [build](docs/BUILD.md) | Every `make` target: dev, test, lint, format, release packaging. |
-| [troubleshooting](docs/TROUBLESHOOTING.md) | Common launch/profile/socket problems and how to resolve them. |
-| [development](docs/DEVELOPMENT.md) | Project layout, IPC architecture, testing strategy, constitution principles. |
-| [security](docs/SECURITY.md) | Threat model, Tauri capability allowlist rationale, how to report a vulnerability. |
-| [contributing](docs/CONTRIBUTING.md) | How to set up, make a change, and open a pull request. |
+| Doc                                        | What's in it                                                                       |
+| ------------------------------------------ | ---------------------------------------------------------------------------------- |
+| [build](docs/BUILD.md)                     | Every `make` target: dev, test, lint, format, release packaging.                   |
+| [troubleshooting](docs/TROUBLESHOOTING.md) | Common launch/profile/socket problems and how to resolve them.                     |
+| [development](docs/DEVELOPMENT.md)         | Project layout, IPC architecture, testing strategy, constitution principles.       |
+| [security](docs/SECURITY.md)               | Threat model, Tauri capability allowlist rationale, how to report a vulnerability. |
+| [contributing](docs/CONTRIBUTING.md)       | How to set up, make a change, and open a pull request.                             |
 
 ## Contributing
 

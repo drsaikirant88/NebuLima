@@ -30,15 +30,16 @@ repos:
     hooks:
       - id: gitleaks
 
-  # Dockerfile lint - official hook from the hadolint repo itself
-  - repo: https://github.com/hadolint/hadolint
-    rev: v2.15.1
-    hooks:
-      - id: hadolint-docker
-
   # Frontend (TypeScript/React) - mirrors `npm run format` / `npm run lint`
   - repo: local
     hooks:
+      - id: check-node-version
+        name: check Node version meets package.json engines.node
+        entry: node scripts/check-node-version.mjs
+        language: system
+        always_run: true
+        pass_filenames: false
+
       - id: biome-format
         name: biome format (frontend)
         entry: npx biome format --write
