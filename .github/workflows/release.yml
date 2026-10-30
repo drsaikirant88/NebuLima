@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  # Defence in depth: release-please.yml's `force-tag-creation` makes the App create tags
+  # release-please.yml's `force-tag-creation` makes the App create tags
   # directly off main, but this also catches a hand-pushed tag (the `v*` tag ruleset
   # should already block that for non-bypass actors) or a tag whose version fields don't
   # actually agree - bundle filenames are derived from them.
@@ -96,10 +96,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # No releaseName/releaseBody/releaseDraft here - the release already exists as a
-          # draft (release-please.yml created it with the generated changelog as its body),
-          # tauri-action just finds it by tag and uploads bundles into it.
+          # No releaseName/releaseBody here - the release already exists as a draft
+          # (release-please.yml created it with the generated changelog as its body),
+          # tauri-action just finds it by tag and uploads bundles into it. releaseDraft
+          # must still be set to true though - tauri-action's tagName lookup requires it
+          # to match the existing release's actual draft status, otherwise it decides no
+          # matching release exists and tries (and fails) to create a new one.
           tagName: ${{ github.ref_name }}
+          releaseDraft: true
           args: --bundles ${{ matrix.bundles }} ${{ matrix.args }}
 
   publish:
