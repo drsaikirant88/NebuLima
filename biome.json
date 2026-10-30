@@ -9,7 +9,8 @@
       "!coverage",
       "!src-tauri",
       "!package-lock.json",
-      "!**/*.min.js"
+      "!**/*.min.js",
+      "!CHANGELOG.md"
     ],
     "ignoreUnknown": true
   },
