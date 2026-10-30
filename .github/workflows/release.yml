@@ -6,11 +6,51 @@ on:
       - "v*.*.*"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
+  # Defence in depth: release-please.yml's `force-tag-creation` makes the App create tags
+  # directly off main, but this also catches a hand-pushed tag (the `v*` tag ruleset
+  # should already block that for non-bypass actors) or a tag whose version fields don't
+  # actually agree - bundle filenames are derived from them.
+  guard:
+    name: Verify tag is on main and versions agree
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Verify ancestry and version fields
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::Tag $GITHUB_REF_NAME (commit $GITHUB_SHA) is not an ancestor of origin/main. Refusing to release from a commit that isn't on main."
+            exit 1
+          fi
+
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          TAURI_VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          CARGO_VERSION=$(grep -m1 '^version' src-tauri/Cargo.toml | sed -E 's/version = "(.*)"/\1/')
+
+          echo "tag:                 $TAG_VERSION"
+          echo "package.json:       $PACKAGE_VERSION"
+          echo "tauri.conf.json:    $TAURI_VERSION"
+          echo "src-tauri/Cargo.toml: $CARGO_VERSION"
+
+          if [ "$TAG_VERSION" != "$PACKAGE_VERSION" ] || [ "$PACKAGE_VERSION" != "$TAURI_VERSION" ] || [ "$PACKAGE_VERSION" != "$CARGO_VERSION" ]; then
+            echo "::error::Version mismatch: tag=$TAG_VERSION package.json=$PACKAGE_VERSION tauri.conf.json=$TAURI_VERSION Cargo.toml=$CARGO_VERSION"
+            exit 1
+          fi
+
   release:
     name: Build & publish (${{ matrix.platform }}, ${{ matrix.arch }})
+    needs: guard
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -56,13 +96,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          # No releaseName/releaseBody/releaseDraft here - the release already exists as a
+          # draft (release-please.yml created it with the generated changelog as its body),
+          # tauri-action just finds it by tag and uploads bundles into it.
           tagName: ${{ github.ref_name }}
-          releaseName: "NebuLima ${{ github.ref_name }}"
-          releaseBody: |
-            NebuLima ${{ github.ref_name }}
-
-            macOS and Linux builds are unsigned. On macOS, right-click the app and
-            choose "Open" the first time to bypass the Gatekeeper warning.
-          releaseDraft: true
-          prerelease: false
           args: --bundles ${{ matrix.bundles }} ${{ matrix.args }}
+
+  publish:
+    name: Publish the draft release
+    needs: [guard, release]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "${{ github.ref_name }}" --draft=false --repo "${{ github.repository }}"
