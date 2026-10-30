@@ -48,23 +48,33 @@ See [build docs](docs/BUILD.md) for the full `make` target reference.
    If it touches Tauri capabilities, shell-plugin scope, or Docker socket handling,
    say so explicitly and explain the security impact.
 
-A PR doesn't need to bump the version, but if it touches any of `package.json`,
-`src-tauri/Cargo.toml`, or `src-tauri/tauri.conf.json`'s `version` field, CI's
-version-check job will fail unless all three agree - see [releasing a new
-version](#releasing-a-new-version).
+A PR doesn't need to bump the version - don't touch `package.json`, `src-tauri/Cargo.toml`,
+or `src-tauri/tauri.conf.json`'s `version` field by hand. [release-please](#releasing-a-new-version)
+owns those fields and opens its own PR for them.
 
 ## Releasing a new version
 
-Releases are tag-triggered (`.github/workflows/release.yml`, on `v*.*.*` tags), not
-automatic on merge. To cut one:
+Releases are automated with [release-please](https://github.com/googleapis/release-please):
+nobody bumps a version field or pushes a `v*` tag by hand.
 
-1. Bump the `version` field in all three of `package.json`, `src-tauri/Cargo.toml`,
-   and `src-tauri/tauri.conf.json` to the same value - they drive the release bundle
-   filenames, independent of whatever tag you push.
-2. Merge that change to `main`.
-3. `git tag -a vX.Y.Z -m "NebuLima vX.Y.Z"` then `git push origin vX.Y.Z`.
-4. This builds and attaches `.deb`/`.AppImage`/`.dmg` artifacts as a **draft** GitHub
-   release - review and publish it manually from the Releases tab.
+1. Every PR merged to `main` must be titled as a Conventional Commit (enforced by the
+   `PR title` check). `release-please.yml` runs on every push to `main` and keeps a
+   standing **Release PR** up to date - it bumps `package.json`, `src-tauri/Cargo.toml`,
+   and `src-tauri/tauri.conf.json`'s `version` fields together, updates `Cargo.lock`, and
+   writes `CHANGELOG.md` from the merged commits since the last release. `fix:` bumps
+   patch, `feat:` bumps minor, a `!` or `BREAKING CHANGE:` footer bumps major (minor while
+   the project is still below `1.0.0`). `chore:`, `ci:`, `docs:`, `build:`, `test:`, and
+   `refactor:` alone don't trigger a release.
+2. **Merging the Release PR is the release button.** On merge, release-please tags
+   `vX.Y.Z` and creates a **draft** GitHub release with the changelog as its body.
+   `release.yml` then builds `.deb`/`.AppImage`/`.dmg` for every platform, a guard job
+   checks the tag is actually on `main` and all three version fields agree, and a final
+   job publishes the release once every build has attached its artifacts.
+3. To force a specific version instead of letting commit types decide it, add a
+   `Release-As: X.Y.Z` footer to a commit on `main` (most often the PR's squash commit
+   message) - release-please picks this up on its next run.
+4. macOS and Linux builds are unsigned - right-click the app and choose "Open" the first
+   time to bypass the Gatekeeper warning on macOS.
 
 ## Reporting bugs
 
